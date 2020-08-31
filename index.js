@@ -43,7 +43,15 @@ const setDiamonds = async(userID, n, newAcc=false) => {
 		}, (err, numberAffected, rawResponse) => {});
 };
 
-const mine = async(msg) => {
+const atToId = at => {
+	if (/<@.*>$/.test(at)) {
+		at = at.slice(2, -1);
+		at = at[0] == '!' ? at.slice(1) : at;
+	}
+	return at;
+}
+
+const mine = async(msg, args) => {
 	const isDiamond = Math.random() * 20 < 1;
 	if (isDiamond) {
 		const cnt = await getDiamonds(msg.author.id);
@@ -53,9 +61,15 @@ const mine = async(msg) => {
 	msg.channel.send(`${msg.author.username}, you mined ${mineral}`);
 };
 
-const profile = async(msg) => {
-	const cnt = await getDiamonds(msg.author.id);
-	msg.channel.send(`${msg.author.username}, you have mined a total of ${await getDiamonds(msg.author.id)} diamonds 💎`);
+const profile = async(msg, args) => {
+	let at = args[0];
+	if (at) {
+		at = atToId(at);
+		msg.channel.send(`${client.users.cache.get(at).username}, has mined a total of ${await getDiamonds(at)} diamonds 💎`);
+	}
+	else {
+		msg.channel.send(`${msg.author.username}, you have mined a total of ${await getDiamonds(msg.author.id)} diamonds 💎`);
+	}
 }
 
 const prefix = '_';
@@ -67,10 +81,10 @@ client.on('message', msg => {
 	
 	switch (cmd) {
 		case 'mine':
-			mine(msg);
+			mine(msg, args);
 			break;
 		case 'profile':
-			profile(msg);
+			profile(msg, args);
 			break;
 		default:
 			break;
