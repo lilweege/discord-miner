@@ -43,13 +43,7 @@ const setDiamonds = async(userID, n, newAcc=false) => {
 		}, (err, numberAffected, rawResponse) => {});
 };
 
-const atToId = at => {
-	if (/<@.*>$/.test(at)) {
-		at = at.slice(2, -1);
-		at = at[0] == '!' ? at.slice(1) : at;
-	}
-	return at;
-}
+const atToId = at => /<@.*>$/.test(at) ? at.slice(at[2] == '!' ? 3 : 2, -1) : at;
 
 const mine = async(msg, args) => {
 	const isDiamond = Math.random() * 20 < 1;
