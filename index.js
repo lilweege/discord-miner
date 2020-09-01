@@ -23,16 +23,27 @@ const Account = Mongoose.model('Account', userSchema);
 const getDiamonds = async(userID) => {
 	let n = 0;
 	await Account.find({userId: userID})
-	.then(entries => {
-		if (entries[0])
-			n = entries[0].diamonds;
-	})
-	.catch(err => {})
+		.then(entries => {
+			if (entries[0])
+				n = entries[0].diamonds;
+		})
+		.catch(err => {})
 	return n;
-}
+};
+
+const getUsers = async() => {
+	let sorted = [];
+	await Account.find()
+		.then(entries => {
+			entries.sort((a,b) => b.diamonds - a.diamonds);
+			sorted = entries;
+		})
+		.catch(err => {})
+	return sorted;
+};
 
 const setDiamonds = async(userID, n, newAcc=false) => {
-	if (newAcc)		
+	if (newAcc)
 		new Account({
 			userId: userID,
 			diamonds: n
@@ -66,19 +77,34 @@ const profile = async(msg, args) => {
 	}
 }
 
+const top = async(msg, args) => {
+	let i = 1;
+	let board = "";
+	let users = await getUsers()
+	for (const user in users) {
+        const cur = client.users.cache.get(users[user].userId);
+        if (cur)
+        	board += `#${i++}: ${cur.username} with ${users[user].diamonds} diamonds 💎\n`;
+	}
+	msg.channel.send(board);
+}
+
 const prefix = '_';
 client.on('message', msg => {
 	if (!msg.content.startsWith(prefix) || msg.author.bot)
 		return;
 	const args = msg.content.slice(prefix.length).split(/ +/);
 	const cmd = args.shift().toLowerCase();
-	
+
 	switch (cmd) {
 		case 'mine':
 			mine(msg, args);
 			break;
 		case 'profile':
 			profile(msg, args);
+			break;
+		case 'top':
+			top(msg, args);
 			break;
 		default:
 			break;
